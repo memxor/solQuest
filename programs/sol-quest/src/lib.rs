@@ -2,16 +2,17 @@ use anchor_lang::prelude::*;
 
 declare_id!("4rByWqQnzNL3Zrpk6sgF22SwZCCzqc7oNP2HGHUK2iu3");
 
-pub const QUEST_REQUIRED_FOR_SILVER: i8 = 5;
-pub const QUEST_REQUIRED_FOR_GOLD: i8 = 10;
-pub const QUEST_REQUIRED_FOR_PLATINUM: i8 = 15;
-pub const MATE_SEED: &[u8; 4] = b"Mate";
+pub const QUEST_REQUIRED_FOR_SILVER: i8 = 5; // Number of completed quests required for silver
+pub const QUEST_REQUIRED_FOR_GOLD: i8 = 10; // Number of completed quests required for gold
+pub const QUEST_REQUIRED_FOR_PLATINUM: i8 = 15; // Number of completed quests required for platinum
+pub const MATE_SEED: &[u8; 4] = b"Mate"; // Mate seed
 
 #[program]
 pub mod sol_quest 
 {
     use super::*;
 
+    // Initialize a new user
     pub fn initialize_user(ctx: Context<InitializeUser>, nft_mint: Pubkey) -> Result<()> 
     {
         let user = &mut ctx.accounts.user;
@@ -21,10 +22,13 @@ pub mod sol_quest
         user.mate_joined_date = Clock::get().unwrap().unix_timestamp as i64;
         user.quest_completed_by_mate = Vec::new();
         user.mate_role = MateRole::Bronze;
+        user.socials = Vec::new();
+        user.mate_socials_size = 0;
 
         Ok(())
     }
 
+    // Add a completed quest to user account
     pub fn add_completed_quest(ctx: Context<AddCompletedQuest>, quest_id: i8) -> Result<()> 
     {
         let user = &mut ctx.accounts.user;
@@ -46,6 +50,18 @@ pub mod sol_quest
 
         Ok(())
     }
+
+    // Add a social to user account
+    pub fn add_mate_social(ctx: Context<AddMateSocial>, social: Social) -> Result<()> 
+    {
+        let user = &mut ctx.accounts.user;
+
+        user.socials.push(social);
+        let size: usize = user.socials.iter().map(|x| x.social_name.len() + x.social_link.len()).into_iter().sum();
+        user.mate_socials_size += (size + 8) as u64;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -54,7 +70,12 @@ pub struct InitializeUser<'info>
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    #[account(init, payer = signer, seeds = [MATE_SEED, signer.key().as_ref()], bump, space = Mate::LEN)]
+    #[account(
+        init, 
+        payer = signer, 
+        seeds = [MATE_SEED, signer.key().as_ref()], 
+        bump, 
+        space = Mate::LEN)]
     pub user: Account<'info, Mate>,
 
     pub system_program: Program<'info, System>
@@ -66,7 +87,32 @@ pub struct AddCompletedQuest<'info>
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    #[account(mut, seeds = [MATE_SEED, signer.key().as_ref()], bump, realloc = user.quest_completed_by_mate.len() + 1 + Mate::LEN, realloc::payer = signer, realloc::zero = true)]
+    #[account(
+        mut, 
+        seeds = [MATE_SEED, signer.key().as_ref()], 
+        bump, 
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + user.mate_socials_size as usize + 1,
+        realloc::payer = signer, 
+        realloc::zero = true)]
+    pub user: Account<'info, Mate>,
+
+    pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+#[instruction(social: Social)]
+pub struct AddMateSocial<'info>
+{
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(
+        mut, 
+        seeds = [MATE_SEED, signer.key().as_ref()], 
+        bump, 
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + user.mate_socials_size as usize + 4 + social.social_name.len() + 4 + social.social_link.len(), 
+        realloc::payer = signer, 
+        realloc::zero = true)]
     pub user: Account<'info, Mate>,
 
     pub system_program: Program<'info, System>
@@ -79,12 +125,14 @@ pub struct Mate
     pub mate_nft: Pubkey,
     pub mate_joined_date: i64,
     pub quest_completed_by_mate: Vec<i8>,
-    pub mate_role: MateRole
+    pub mate_role: MateRole,
+    pub socials: Vec<Social>,
+    pub mate_socials_size: u64
 }
 
 impl Mate 
 {
-    pub const LEN: usize = 8 + std::mem::size_of::<Mate>();
+    pub const LEN: usize = 8 + 32 + 32 + 8 + 4 + 1 + 4 + 8;
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -94,4 +142,11 @@ pub enum MateRole
     Silver,
     Gold,
     Platinum
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct Social
+{
+    pub social_name: String,
+    pub social_link: String
 }

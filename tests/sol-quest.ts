@@ -30,6 +30,36 @@ describe("sol-quest", () => {
     console.log(mateAccount.questCompletedByMate);
   });
 
+
+  it("Add Mate Social!", async () =>
+  {
+    const [mateAccountPDA] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("Mate"), provider.publicKey.toBuffer()], program.programId);
+
+    await program.methods
+      .addMateSocial({ socialName: "Twitter", socialLink: "@memxor_"})
+      .accounts({
+        signer: provider.publicKey,
+        user: mateAccountPDA,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .rpc();
+    
+    await program.methods
+      .addMateSocial({ socialName: "Telegram", socialLink: "memxor"})
+      .accounts({
+        signer: provider.publicKey,
+        user: mateAccountPDA,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .rpc();
+    
+    const mateAccount = await program.account.mate.fetch(mateAccountPDA);
+    
+    console.log(mateAccount.socials.length);
+    console.log(mateAccount.socials[0]);
+    console.log(mateAccount.socials[1]);
+  });
+
   it("Add mate quest!", async () =>
   {
     const [mateAccountPDA] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("Mate"), provider.publicKey.toBuffer()], program.programId);
@@ -87,4 +117,5 @@ describe("sol-quest", () => {
     console.log(mateAccount.mateRole);
     console.log(mateAccount.questCompletedByMate);
   });
+
 });
