@@ -23,7 +23,6 @@ pub mod sol_quest
         user.quest_completed_by_mate = Vec::new();
         user.mate_role = MateRole::Bronze;
         user.socials = Vec::new();
-        user.mate_socials_size = 0;
 
         Ok(())
     }
@@ -51,14 +50,15 @@ pub mod sol_quest
         Ok(())
     }
 
-    // Add a social to user account
-    pub fn add_mate_social(ctx: Context<AddMateSocial>, social: Social) -> Result<()> 
+    // Add socials to user account
+    pub fn add_mate_social(ctx: Context<AddMateSocial>, socials: Vec<Social>) -> Result<()> 
     {
         let user = &mut ctx.accounts.user;
 
-        user.socials.push(social);
-        let size: usize = user.socials.iter().map(|x| x.social_name.len() + x.social_link.len()).into_iter().sum();
-        user.mate_socials_size += (size + 8) as u64;
+        for social in socials
+        {
+            user.socials.push(social);
+        }
 
         Ok(())
     }
@@ -91,7 +91,7 @@ pub struct AddCompletedQuest<'info>
         mut, 
         seeds = [MATE_SEED, signer.key().as_ref()], 
         bump, 
-        realloc = Mate::LEN + user.quest_completed_by_mate.len() + user.mate_socials_size as usize + 1,
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) + 1,
         realloc::payer = signer, 
         realloc::zero = true)]
     pub user: Account<'info, Mate>,
@@ -100,7 +100,7 @@ pub struct AddCompletedQuest<'info>
 }
 
 #[derive(Accounts)]
-#[instruction(social: Social)]
+#[instruction(socials: Vec<Social>)]
 pub struct AddMateSocial<'info>
 {
     #[account(mut)]
@@ -110,7 +110,7 @@ pub struct AddMateSocial<'info>
         mut, 
         seeds = [MATE_SEED, signer.key().as_ref()], 
         bump, 
-        realloc = Mate::LEN + user.quest_completed_by_mate.len() + user.mate_socials_size as usize + 4 + social.social_name.len() + 4 + social.social_link.len(), 
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) +  Social::get_social_length(socials.clone()), 
         realloc::payer = signer, 
         realloc::zero = true)]
     pub user: Account<'info, Mate>,
@@ -126,8 +126,7 @@ pub struct Mate
     pub mate_joined_date: i64,
     pub quest_completed_by_mate: Vec<i8>,
     pub mate_role: MateRole,
-    pub socials: Vec<Social>,
-    pub mate_socials_size: u64
+    pub socials: Vec<Social>
 }
 
 impl Mate 
@@ -149,4 +148,13 @@ pub struct Social
 {
     pub social_name: String,
     pub social_link: String
+}
+
+impl Social
+{
+    fn get_social_length(socials: Vec<Social>) -> usize
+    {
+        let size: usize = socials.iter().map(|x| x.social_name.len() + x.social_link.len() + 8).into_iter().sum();
+        size
+    }
 }

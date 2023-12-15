@@ -36,16 +36,7 @@ describe("sol-quest", () => {
     const [mateAccountPDA] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("Mate"), provider.publicKey.toBuffer()], program.programId);
 
     await program.methods
-      .addMateSocial({ socialName: "Twitter", socialLink: "@memxor_"})
-      .accounts({
-        signer: provider.publicKey,
-        user: mateAccountPDA,
-        systemProgram: anchor.web3.SystemProgram.programId
-      })
-      .rpc();
-    
-    await program.methods
-      .addMateSocial({ socialName: "Telegram", socialLink: "memxor"})
+      .addMateSocial([{ socialName: "Twitter", socialLink: "@memxor_"}, { socialName: "Instagram", socialLink: "@memxor"}])
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,
