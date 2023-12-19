@@ -56,7 +56,7 @@ describe("sol-quest", () => {
     const [mateAccountPDA] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("Mate"), provider.publicKey.toBuffer()], program.programId);
 
     await program.methods
-      .addCompletedQuest({id: 1, github: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
+      .addCompletedQuest({id: 1, deployedUrl: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,
@@ -65,7 +65,7 @@ describe("sol-quest", () => {
       .rpc();
     
         await program.methods
-      .addCompletedQuest({id: 2, github: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
+      .addCompletedQuest({id: 2, deployedUrl: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,
@@ -74,7 +74,7 @@ describe("sol-quest", () => {
       .rpc();
     
         await program.methods
-      .addCompletedQuest({id: 3, github: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
+      .addCompletedQuest({id: 3, deployedUrl: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,
@@ -83,7 +83,7 @@ describe("sol-quest", () => {
       .rpc();
     
         await program.methods
-      .addCompletedQuest({id: 4, github: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
+      .addCompletedQuest({id: 4, deployedUrl: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,
@@ -92,7 +92,7 @@ describe("sol-quest", () => {
       .rpc();
     
         await program.methods
-      .addCompletedQuest({id: 5, github: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
+      .addCompletedQuest({id: 5, deployedUrl: "github.com/memxor/example", transaction: "dfh9pauwfbhiuohbfiuPHNOUIHNOIPHFNDOSIFNOnsonfosinfo[s'fnosifnsofnin'fnd"})
       .accounts({
         signer: provider.publicKey,
         user: mateAccountPDA,

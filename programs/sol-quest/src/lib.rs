@@ -168,7 +168,7 @@ pub struct Social
 pub struct Quest
 {
     pub id: i8,
-    pub github: String,
+    pub deployed_url: String,
     pub transaction: String
 }
 
@@ -185,13 +185,13 @@ impl Quest
 {
     fn get_quests_length(quests: Vec<Quest>) -> usize
     {
-        let size: usize = quests.iter().map(|x| x.github.len() + x.transaction.len() + 9).into_iter().sum();
+        let size: usize = quests.iter().map(|x| x.deployed_url.len() + x.transaction.len() + 9).into_iter().sum();
         size
     }
 
     fn get_quest_length(quest: Quest) -> usize
     {
-        let size: usize = quest.github.len() + quest.transaction.len() + 9;
+        let size: usize = quest.deployed_url.len() + quest.transaction.len() + 9;
         size
     }
 }
