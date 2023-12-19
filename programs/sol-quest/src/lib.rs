@@ -28,11 +28,11 @@ pub mod sol_quest
     }
 
     // Add a completed quest to user account
-    pub fn add_completed_quest(ctx: Context<AddCompletedQuest>, quest_id: i8) -> Result<()> 
+    pub fn add_completed_quest(ctx: Context<AddCompletedQuest>, quest: Quest) -> Result<()> 
     {
         let user = &mut ctx.accounts.user;
 
-        user.quest_completed_by_mate.push(quest_id);
+        user.quest_completed_by_mate.push(quest);
 
         if user.quest_completed_by_mate.len() as i8 >= QUEST_REQUIRED_FOR_PLATINUM
         {
@@ -57,7 +57,20 @@ pub mod sol_quest
 
         for social in socials
         {
-            user.socials.push(social);
+            let mut social_already_exists = false;
+            for existing_socials in &mut user.socials
+            {
+                if social.social_name == existing_socials.social_name
+                {
+                   existing_socials.social_link = social.social_link.clone();
+                   social_already_exists = true;
+                }
+            }
+
+            if !social_already_exists
+            {
+                user.socials.push(social);
+            }
         }
 
         Ok(())
@@ -82,6 +95,7 @@ pub struct InitializeUser<'info>
 }
 
 #[derive(Accounts)]
+#[instruction(quest: Quest)]
 pub struct AddCompletedQuest<'info>
 {
     #[account(mut)]
@@ -91,7 +105,7 @@ pub struct AddCompletedQuest<'info>
         mut, 
         seeds = [MATE_SEED, signer.key().as_ref()], 
         bump, 
-        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) + 1,
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) + Quest::get_quests_length(user.quest_completed_by_mate.clone()) + Quest::get_quest_length(quest.clone()) ,
         realloc::payer = signer, 
         realloc::zero = true)]
     pub user: Account<'info, Mate>,
@@ -110,7 +124,7 @@ pub struct AddMateSocial<'info>
         mut, 
         seeds = [MATE_SEED, signer.key().as_ref()], 
         bump, 
-        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) +  Social::get_social_length(socials.clone()), 
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(user.socials.clone()) + Quest::get_quests_length(user.quest_completed_by_mate.clone()) + Social::get_social_length(socials.clone()), 
         realloc::payer = signer, 
         realloc::zero = true)]
     pub user: Account<'info, Mate>,
@@ -124,7 +138,7 @@ pub struct Mate
     pub authority: Pubkey,
     pub mate_nft: Pubkey,
     pub mate_joined_date: i64,
-    pub quest_completed_by_mate: Vec<i8>,
+    pub quest_completed_by_mate: Vec<Quest>,
     pub mate_role: MateRole,
     pub socials: Vec<Social>
 }
@@ -150,11 +164,34 @@ pub struct Social
     pub social_link: String
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct Quest
+{
+    pub id: i8,
+    pub github: String,
+    pub transaction: String
+}
+
 impl Social
 {
     fn get_social_length(socials: Vec<Social>) -> usize
     {
         let size: usize = socials.iter().map(|x| x.social_name.len() + x.social_link.len() + 8).into_iter().sum();
+        size
+    }
+}
+
+impl Quest
+{
+    fn get_quests_length(quests: Vec<Quest>) -> usize
+    {
+        let size: usize = quests.iter().map(|x| x.github.len() + x.transaction.len() + 9).into_iter().sum();
+        size
+    }
+
+    fn get_quest_length(quest: Quest) -> usize
+    {
+        let size: usize = quest.github.len() + quest.transaction.len() + 9;
         size
     }
 }

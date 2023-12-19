@@ -8,7 +8,7 @@ sol_quest = "4rByWqQnzNL3Zrpk6sgF22SwZCCzqc7oNP2HGHUK2iu3"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "/home/home/.config/solana/id.json"
 
 [scripts]
