@@ -164,6 +164,15 @@ pub struct Social {
     pub social_name: String,
     pub social_link: String
 }
+
+impl Social
+{
+    fn get_social_length(socials: &Vec<Social>) -> usize
+    {
+        let size: usize = socials.iter().map(|x| x.social_name.len() + x.social_link.len() + 8).into_iter().sum();
+        size
+    }
+}
 ```
 
 ### Struct: Quest
@@ -177,6 +186,21 @@ pub struct Quest {
     pub transaction: String,
     updated_time: i64,
     status: Status
+}
+
+impl Quest
+{
+    fn get_quests_length(quests: &Vec<Quest>) -> usize
+    {
+        let size: usize = quests.iter().map(|x| x.deployed_url.len() + x.transaction.len() + 18).into_iter().sum();
+        size
+    }
+
+    fn get_quest_length(deployed_url: &String, transaction: &String) -> usize
+    {
+        let size: usize = deployed_url.len() + transaction.len() + 18;
+        size
+    }
 }
 ```
 
