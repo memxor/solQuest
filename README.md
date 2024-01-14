@@ -124,3 +124,80 @@ pub fn approve_user_quest(ctx: Context<ApproveMateQuestStatus>, quest_id: i8) ->
 }
 ```
 
+### Struct: Admin
+`Admin` is an account struct representing the admin of the system. It has two fields: `authority` (a public key) and `mates_submitted` (a vector of public keys). The `LEN` constant is used to define the space required for an admin account.
+```
+#[account]
+pub struct Admin {
+    pub authority: Pubkey,
+    pub mates_submitted: Vec<Pubkey>
+}
+
+impl Admin {
+    pub const LEN: usize = 8 + 32 + 4;
+}
+```
+
+### Struct: Mate
+`Mate` is an account struct representing a user or mate in the system. It has several fields including `authority` (public key), `mate_nft` (NFT mint associated with the mate), `mate_joined_date` (timestamp), `quest_completed_by_mate` (vector of completed quests), `mate_role` (enumeration representing the mate's role), and `socials` (vector of social links). The `LEN` constant defines the space required for a mate account.
+```
+#[account]
+pub struct Mate {
+    pub authority: Pubkey,
+    pub mate_nft: Pubkey,
+    pub mate_joined_date: i64,
+    pub quest_completed_by_mate: Vec<Quest>,
+    pub mate_role: MateRole,
+    pub socials: Vec<Social>
+}
+
+impl Mate {
+    pub const LEN: usize = 8 + 32 + 32 + 8 + 4 + 1 + 4 + 8;
+}
+```
+
+### Struct: Social
+`Social` is a simple struct representing a social link associated with a mate. It has two fields: `social_name` (the name of the social platform) and `social_link` (the link to the mate's profile on that platform).
+```
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct Social {
+    pub social_name: String,
+    pub social_link: String
+}
+```
+
+### Struct: Quest
+`Quest` is a struct representing a completed quest by a mate.
+It has fields such as `id` (unique identifier), `deployed_url` (URL where the quest was deployed), `transaction` (transaction related to the quest), `updated_time` (timestamp when the quest was updated), and `status` (enumeration representing the quest status).
+```
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct Quest {
+    pub id: i8,
+    pub deployed_url: String,
+    pub transaction: String,
+    updated_time: i64,
+    status: Status
+}
+```
+
+### Enum: MateRole
+`MateRole` is an enumeration representing the role of a mate in the system. It can be one of four roles: `Bronze`, `Silver`, `Gold`, or `Platinum`.
+```
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub enum MateRole {
+    Bronze,
+    Silver,
+    Gold,
+    Platinum
+}
+```
+
+### Enum: Status
+`Status` is an enumeration representing the status of a quest. It can be either `SUBMITTED` or `ACCEPTED`.
+```
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+pub enum Status {
+    SUBMITTED,
+    ACCEPTED
+}
+```
