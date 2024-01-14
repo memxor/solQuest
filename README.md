@@ -124,6 +124,115 @@ pub fn approve_user_quest(ctx: Context<ApproveMateQuestStatus>, quest_id: i8) ->
 }
 ```
 
+### Context: InitializeAdmin
+`InitializeAdmin` is a context used for the `initialize_admin` function. It contains the necessary accounts and information required to initialize the admin account. `signer` Represents the account that signs the transaction. It must be a mutable reference. `admin` Represents the admin account that will be initialized. `system_program` Represents the Solana system program.
+```
+#[derive(Accounts)]
+pub struct InitializeAdmin<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(
+        init,
+        payer = signer,
+        seeds = [ADMIN_SEED, signer.key().as_ref()],
+        bump,
+        space = Admin::LEN
+    )]
+    pub admin: Account<'info, Admin>,
+
+    pub system_program: Program<'info, System>
+}
+```
+
+### Context: InitializeUser
+`InitializeUser` is a context used for the `initialize_user` function. It contains the necessary accounts and information required to initialize a new user (mate) account. `signer` Represents the account that signs the transaction. It must be a mutable reference. `user` Represents the user (mate) account that will be initialized. `system_program` Represents the Solana system program.
+```
+#[derive(Accounts)]
+pub struct InitializeUser<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(
+        init,
+        payer = signer,
+        seeds = [MATE_SEED, signer.key().as_ref()],
+        bump,
+        space = Mate::LEN
+    )]
+    pub user: Account<'info, Mate>,
+
+    pub system_program: Program<'info, System>
+}
+```
+
+### Context: AddCompletedQuest
+`AddCompletedQuest` is a context used for the `add_completed_quest function`. It contains the necessary accounts and information required to add a completed quest to a user's account. `signer` Represents the account that signs the transaction. It must be a mutable reference. `user` Represents the user (mate) account to which the completed quest will be added. `admin` Represents the admin account. `system_program` Represents the Solana system program.
+```
+#[derive(Accounts)]
+#[instruction(id: i8, deployed_url: String, transaction: String)]
+pub struct AddCompletedQuest<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [MATE_SEED, user.authority.key().as_ref()],
+        bump,
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(&user.socials) + Quest::get_quests_length(&user.quest_completed_by_mate) + Quest::get_quest_length(&deployed_url, &transaction),
+        realloc::payer = signer,
+        realloc::zero = true
+    )]
+    pub user: Account<'info, Mate>,
+
+    #[account(mut, seeds = [ADMIN_SEED, admin.authority.key().as_ref()], bump, realloc = Admin::LEN + (admin.mates_submitted.len() * 32) + 32, realloc::payer = signer, realloc::zero = true)]
+    pub admin: Account<'info, Admin>,
+
+    pub system_program: Program<'info, System>
+}
+```
+
+### Context: ApproveMateQuestStatus
+`ApproveMateQuestStatus` is a context used for the `approve_user_quest` function. It contains the necessary accounts and information required to approve a quest status for a user. `signer` Represents the account that signs the transaction. It must be a mutable reference. `user` Represents the user (mate) account for which the quest status is being approved. `admin` Represents the admin account. `system_program` Represents the Solana system program.
+```
+#[derive(Accounts)]
+pub struct ApproveMateQuestStatus<'info> {
+    #[account(mut, address = admin.authority)]
+    pub signer: Signer<'info>,
+
+    #[account(mut, seeds = [MATE_SEED, user.authority.key().as_ref()], bump)]
+    pub user: Account<'info, Mate>,
+
+    #[account(mut, seeds = [ADMIN_SEED, admin.authority.key().as_ref()], bump)]
+    pub admin: Account<'info, Admin>,
+
+    pub system_program: Program<'info, System>
+}
+```
+
+### Context: AddMateSocial
+`AddMateSocial` is a context used for the `add_mate_social` function. It contains the necessary accounts and information required to add social links to a user's account. `signer` Represents the account that signs the transaction. It must be a mutable reference. `user` Represents the user (mate) account to which social links will be added. `system_program` Represents the Solana system program.
+```
+#[derive(Accounts)]
+#[instruction(socials: Vec<Social>)]
+pub struct AddMateSocial<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [MATE_SEED, user.authority.key().as_ref()],
+        bump,
+        realloc = Mate::LEN + user.quest_completed_by_mate.len() + Social::get_social_length(&user.socials) + Quest::get_quests_length(&user.quest_completed_by_mate) + Social::get_social_length(&socials),
+        realloc::payer = signer,
+        realloc::zero = true
+    )]
+    pub user: Account<'info, Mate>,
+
+    pub system_program: Program<'info, System>
+}
+```
+
 ### Struct: Admin
 `Admin` is an account struct representing the admin of the system. It has two fields: `authority` (a public key) and `mates_submitted` (a vector of public keys). The `LEN` constant is used to define the space required for an admin account.
 ```
